@@ -1,0 +1,3 @@
+[submodule "ElementaryViews"]
+	path = ElementaryViews
+	url = https://github.com/Py-Swift/ElementaryViews.git

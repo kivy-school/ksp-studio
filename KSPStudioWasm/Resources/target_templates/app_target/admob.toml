@@ -1,0 +1,114 @@
+[swift_packages]
+Admob = { url = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git", upToNextMajor = "10.0.0" }
+
+
+dependencies = [
+    { package = { products = ["OneSignalExtension"], reference = "OneSignal" } }
+]
+
+
+
+
+[info_plist]
+GADApplicationIdentifier = "SAMPLE_APP_ID"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "cstr6suwn9.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "4fzdc2evr5.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "2fnua5tdw4.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "ydx93a7ass.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "p78axxw29g.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "v72qych5uu.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "ludvb6z3bs.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "cp8zw746q7.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "3sh42y64q3.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "c6k4g5qg8m.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "s39g8k73mm.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "wg4vff78zm.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "3qy4746246.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "f38h382jlk.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "hs6bdukanm.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "mlmmfzh3r3.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "v4nxqhlyqp.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "wzmmz9fp6w.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "su67r6k2v3.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "yclnxrl5pm.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "t38b2kh725.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "7ug5zh24hu.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "gta9lk7p23.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "vutu7akeur.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "y5ghdn5j9k.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "v9wttpbfk9.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "n38lu8286q.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "47vhws6wlr.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "kbd757ywx3.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "9t245vhmpl.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "a2p9lx4jpn.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "22mmun2rn5.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "44jx6755aq.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "k674qkevps.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "4468km3ulz.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "2u9pt9hc89.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "8s468mfl3y.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "klf5c3l5u5.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "ppxm28t8ap.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "kbmxgpxpgc.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "uw77j35x4d.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "578prtvx9j.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "4dzt52r2t5.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "tl55sbb4fm.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "c3frkrj4fj.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "e5fvkxwrpn.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "8c4e2ghe7u.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "3rd42ekr43.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "97r2b46745.skadnetwork"
+[[info_plist.SKAdNetworkItems]]
+SKAdNetworkIdentifier = "3qcr597p9d.skadnetwork"
+

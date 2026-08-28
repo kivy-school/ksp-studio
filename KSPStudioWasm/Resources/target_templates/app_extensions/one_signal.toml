@@ -1,0 +1,41 @@
+
+
+# needs = [
+#     "templates/nse.toml"
+# ]
+
+
+dependencies = [
+    { package = { products = ["OneSignalFramework"], reference = "OneSignal" } }
+]
+
+[entitlements]
+aps-environment = "development"
+"com.apple.developer.aps-environment" = "development"
+"com.apple.security.application-groups" = ["$(BUNDLE_IDENTIFIER).onesignal"]
+
+[swift_packages]
+# name = { url = } doesnt have to be the same as the name in the dependencies list, 
+# but it can be if you want it to be. The name is just a reference for the dependency, and the url is where to find it.
+OneSignal = { url = "https://github.com/OneSignal/OneSignal-XCFramework", upToNextMajor = "5.4.1" }
+
+
+# PSProject configuration for createing extra targets, such as app extensions.
+# and specified as [targets.<target_name>] where <target_name> is the name of the target you want to create.
+
+[targets.OneSignalNotificationServiceExtension]
+type = "app_extension"
+sources = ["swift_files/UpdatesTestNotificationExtension.swift"]
+backends = []
+dependencies = [
+    { package = { products = ["OneSignalExtension"], reference = "OneSignal" } }
+]
+
+
+[targets.OneSignalNotificationServiceExtension.entitlements]
+"com.apple.security.application-groups" = ["$(BUNDLE_IDENTIFIER).onesignal"]
+
+
+[targets.OneSignalNotificationServiceExtension.info_plist.NSExtension]
+NSExtensionPointIdentifier = "com.apple.usernotifications.service"
+NSExtensionPrincipalClass = "UpdatesTestNotificationExtension"

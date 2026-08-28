@@ -1,0 +1,25 @@
+[project]
+name = "ksproject-studio"
+version = "0.0.1"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "psychowasp", email = "psychowaspx@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "carbonkivy",
+    "kaki>=0.1.9",
+    "pyobjc>=12.2",
+    "thorvg-cython",
+]
+
+[project.scripts]
+ksproject-studio = "ksproject_studio:main"
+
+[build-system]
+requires = ["uv_build>=0.11.14,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+carbonkivy = { git = "https://github.com/CarbonKivy/CarbonKivy" }

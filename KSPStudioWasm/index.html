@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>KSProject Studio</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: 'class' };
+    </script>
+    <script>
+      // Applied before the app mounts so there's no flash of the wrong theme.
+      (function () {
+        var stored = localStorage.getItem('colorScheme');
+        var wantsDark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', wantsDark);
+      })();
+    </script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        margin: 0;
+        background: #f9fafb;
+      }
+      html.dark {
+        /* Tells the browser to use its own dark-native rendering for
+           controls Tailwind classes can't repaint: checkboxes, <select>
+           dropdowns (including the ones inside the picker), scrollbars. */
+        color-scheme: dark;
+      }
+      html.dark body {
+        background: #111827;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

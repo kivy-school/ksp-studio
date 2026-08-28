@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "preinstall": "swiftly run swift package resolve",
+    "dev": "swiftly run vite --open",
+    "build": "swiftly run vite build",
+    "preview": "swiftly run vite preview"
+  },
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "~0.4.2",
+    "elementary-ui-browser-runtime": "file:.build/checkouts/elementary-ui/BrowserRuntime"
+  },
+  "devDependencies": {
+    "@elementary-swift/vite-plugin-swift-wasm": "~0.1.0",
+    "vite": "^8.0.0-beta.2"
+  }
+}
