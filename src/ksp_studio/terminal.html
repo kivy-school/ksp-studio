@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Terminal</title>
+    <!-- xterm.js, served from the package rather than a CDN so an installed
+         wheel works with no network. Staged out of node_modules by
+         scripts/build_wasm.py. -->
+    <link rel="stylesheet" href="/terminal/assets/xterm.css" />
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #111827;
+        overflow: hidden;
+      }
+      #term { height: 100%; padding: 6px 8px; box-sizing: border-box; }
+      #notice {
+        display: none;
+        padding: 12px;
+        color: #9ca3af;
+        font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="term"></div>
+    <div id="notice"></div>
+
+    <script src="/terminal/assets/xterm.js"></script>
+    <script src="/terminal/assets/addon-fit.js"></script>
+    <script>
+      // The session id and starting directory are injected by the view.
+      const SESSION = window.__KSP_TERMINAL__;
+
+      const term = new Terminal({
+        cursorBlink: true,
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        fontSize: 13,
+        scrollback: 10000,
+        theme: {
+          background: "#111827",
+          foreground: "#e5e7eb",
+          cursor: "#e5e7eb",
+          selectionBackground: "#374151",
+        },
+      });
+
+      const fit = new FitAddon.FitAddon();
+      term.loadAddon(fit);
+      term.open(document.getElementById("term"));
+      fit.fit();
+      term.focus();
+
+      // ── Output ──
+      //
+      // Polling rather than a WebSocket: the server runs under runserver
+      // (WSGI). See terminal.py. Bytes go straight to xterm, which owns all
+      // the emulation — cursor, scroll regions, alternate screen buffer, so
+      // vim and top behave.
+
+      let offset = 0;
+      let alive = true;
+
+      async function poll() {
+        while (alive) {
+          try {
+            const res = await fetch(`/terminal/${SESSION.id}/output?offset=${offset}`);
+            if (res.status === 404) return finish("session ended");
+            const data = await res.json();
+            if (data.data) term.write(data.data);
+            offset = data.offset;
+            if (!data.running) return finish("shell exited");
+          } catch (err) {
+            return finish("disconnected from the studio server");
+          }
+          await new Promise((r) => setTimeout(r, 120));
+        }
+      }
+
+      function finish(message) {
+        alive = false;
+        term.write(`\r\n\x1b[90m[${message}]\x1b[0m\r\n`);
+      }
+
+      // ── Input ──
+      //
+      // onData already gives us the encoded bytes for control keys, arrows and
+      // paste, so there is no key mapping to maintain here.
+
+      term.onData((data) => {
+        if (!alive) return;
+        fetch(`/terminal/${SESSION.id}/input`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data }),
+        }).catch(() => {});
+      });
+
+      // ── Size ──
+      //
+      // xterm measures the real character cell, so the PTY gets the dimensions
+      // the emulator is actually using and line wrapping lines up.
+
+      function sendResize() {
+        fit.fit();
+        fetch(`/terminal/${SESSION.id}/resize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rows: term.rows, cols: term.cols }),
+        }).catch(() => {});
+      }
+
+      window.addEventListener("resize", sendResize);
+      // The iframe is torn down when the modal closes; tell the server so the
+      // shell doesn't linger until the idle sweep.
+      window.addEventListener("pagehide", () => {
+        navigator.sendBeacon(`/terminal/${SESSION.id}/close`);
+      });
+
+      sendResize();
+      poll();
+    </script>
+  </body>
+</html>

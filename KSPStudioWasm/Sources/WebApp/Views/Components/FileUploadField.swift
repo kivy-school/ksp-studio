@@ -101,8 +101,9 @@ struct ImagePreviewBox {
             div(.class("relative \(boxClass) flex-shrink-0")) {
                 img(
                     .src(value),
-                    .class("w-full h-full object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-white")
+                    .class("w-full h-full object-contain rounded-lg bg-white")
                 )
+                .border(.separator)
                 button(.class("absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs leading-none cursor-pointer")) { "✕" }
                     .onClick { _ in value = "" }
             }

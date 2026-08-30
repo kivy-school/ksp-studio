@@ -24,11 +24,12 @@ struct EntitlementsEditor {
         #Table(layout: .auto) {
             thead {
                 tr {
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) {
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) {
                         BoolField(fieldLabel: "Key - (raw)", value: $stringKeya)
                     }
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) { "" }
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) { "Value" }
+                    .border(.separator, edges: .bottom)
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) { "" }.border(.separator, edges: .bottom)
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) { "Value" }.border(.separator, edges: .bottom)
                 }
             }
             ForEach(data.sortedArray, key: \.key) { (key, value) in
@@ -248,9 +249,9 @@ extension EValueInputRow {
         func header() -> some View {
             thead {
                 tr {
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) { "Key" }
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) { "" }
-                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700")) { "Value" }
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) { "Key" }.border(.separator, edges: .bottom)
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) { "" }.border(.separator, edges: .bottom)
+                    th(.class("px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-300")) { "Value" }.border(.separator, edges: .bottom)
                 }
             }
         }
