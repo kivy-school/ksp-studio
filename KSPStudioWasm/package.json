@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "~0.4.2",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "elementary-ui-browser-runtime": "file:.build/checkouts/elementary-ui/BrowserRuntime"
   },
   "devDependencies": {

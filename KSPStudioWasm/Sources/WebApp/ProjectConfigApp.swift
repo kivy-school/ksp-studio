@@ -1,4 +1,5 @@
 import ElementaryUI
+import ElementaryViews
 import JavaScriptKit
 
 // ── Tab definitions matching the server-side layout ──
@@ -147,13 +148,17 @@ enum AppleHomeSubTab: String, CaseIterable {
 /// Root view for the project configuration page.
 @View
 struct ProjectConfigApp {
-    var folderName: String
-
     @State var model: ProjectModel = ProjectModel()
     /// Separate from `model` on purpose — built on the real `PyProjectToml`
     /// schema (see `RootModel.swift`), not the legacy flat bridge. Only the
     /// Android tab reads from this for now.
     @State var rootModel: RootModel = RootModel()
+    /// Untouched copies of both models as they were loaded — never handed to a
+    /// view, so nothing can edit them. Posted alongside the live models on
+    /// save so the server can tell an actual edit from a field the model
+    /// merely filled in a default for (see `savePayload`).
+    @State var baselineModel: ProjectModel = ProjectModel()
+    @State var baselineRootModel: RootModel = RootModel()
     @State var activePlatform: Platform = .apple
     @State var activePage: MainPage = .config
     @State var activeConfigTab: ConfigTab = .project
@@ -163,12 +168,20 @@ struct ProjectConfigApp {
     @State var saveMessage: String = ""
     @State var isLoading: Bool = true
     @State var showTerminal: Bool = false
-    @State var colorScheme: AppColorScheme = documentIsDark() ? .dark : .light
+    @State var colorScheme: ColorScheme = documentIsDark() ? .dark : .light
 
     var body: some View {
         div {
-            // Nav bar
-            NavBar(colorScheme: $colorScheme)
+            // Nav bar — carries the save control, so it's reachable from every
+            // platform and every tab.
+            NavBar(
+                colorScheme: $colorScheme,
+                model: model,
+                rootModel: rootModel,
+                baseline: $baselineModel,
+                baselineRoot: $baselineRootModel,
+                saveMessage: $saveMessage
+            )
 
             div(.class("flex flex-1 min-h-0")) {
                 PlatformSidebar(activePlatform: $activePlatform, onSelect: selectPlatform)
@@ -180,11 +193,7 @@ struct ProjectConfigApp {
                                 p { "Loading project..." }
                             }
                         } else {
-                            ProjectHeader(
-                                model: model,
-                                folderName: folderName,
-                                onReload: loadProject
-                            )
+                            ProjectHeader(model: model, onReload: loadProject)
 
                             div(.class("flex gap-6")) {
                                 div(.class("flex-1 min-w-0")) {
@@ -200,17 +209,13 @@ struct ProjectConfigApp {
                                         case .python:
                                             PythonConfigView(
                                                 model: model,
-                                                activeTab: $activeConfigTab,
-                                                folderName: folderName,
-                                                saveMessage: $saveMessage
+                                                activeTab: $activeConfigTab
                                             )
                                         case .apple:
                                             AppleConfigView(
                                                 model: model,
                                                 activeTab: $activeAppleTab,
-                                                activeHomeSubTab: $activeAppleHomeSubTab,
-                                                folderName: folderName,
-                                                saveMessage: $saveMessage
+                                                activeHomeSubTab: $activeAppleHomeSubTab
                                             )
                                         }
                                     } else {
@@ -254,11 +259,21 @@ struct ProjectConfigApp {
         activeAndroidTab = .home
     }
 
+    /// One fetch feeds both models. The response carries the legacy flat keys
+    /// `ProjectModel` reads *and* a `pyProject` holding the raw
+    /// `pyproject.toml` that `RootModel` reads — they nest differently, so
+    /// there's no collision (see `ksp_studio/project.py`).
     func loadProject() async {
         isLoading = true
         do {
-            let jsObj = try await APIClient.fetchProject(folderName: folderName)
+            let jsObj = try await APIClient.fetchProject()
             model = .construct(from: jsObj.jsValue) ?? .init()
+            rootModel = .construct(from: jsObj.jsValue) ?? .init()
+            // Constructed separately rather than copied: `construct` builds
+            // fresh objects every time, so these share no reference with the
+            // pair above and stay as loaded however the UI is edited.
+            baselineModel = .construct(from: jsObj.jsValue) ?? .init()
+            baselineRootModel = .construct(from: jsObj.jsValue) ?? .init()
         } catch {
             print("Failed to load project: \(error)")
         }
@@ -270,7 +285,12 @@ struct ProjectConfigApp {
 
 @View
 struct NavBar {
-    @Binding var colorScheme: AppColorScheme
+    @Binding var colorScheme: ColorScheme
+    var model: ProjectModel
+    var rootModel: RootModel
+    @Binding var baseline: ProjectModel
+    @Binding var baselineRoot: RootModel
+    @Binding var saveMessage: String
 
     var body: some View {
         nav(.class("bg-indigo-600 text-white shadow-lg")) {
@@ -279,6 +299,18 @@ struct NavBar {
                 div(.class("flex items-center gap-4 text-sm")) {
                     //a(.href("/"), .class("hover:text-indigo-200")) { "Dashboard" }
                     //a(.href("/new"), .class("hover:text-indigo-200")) { "New Project" }
+                    // Rendered unconditionally, including while the project is
+                    // still loading: at that point the live models and the
+                    // baselines are both freshly constructed and therefore
+                    // identical, so a save is a no-op rather than a hazard —
+                    // and the nav's children never change shape mid-session.
+                    SaveConfigurationBar(
+                        model: model,
+                        rootModel: rootModel,
+                        baseline: $baseline,
+                        baselineRoot: $baselineRoot,
+                        saveMessage: $saveMessage
+                    )
                     button(.class("text-lg leading-none cursor-pointer hover:text-indigo-200")) {
                         colorScheme == .dark ? "🌙" : "☀️"
                     }
@@ -308,7 +340,6 @@ func setDocumentIsDark(_ isDark: Bool) {
 @View
 struct ProjectHeader {
     var model: ProjectModel
-    var folderName: String
     var onReload: () async -> Void
 
     var body: some View {
@@ -334,11 +365,12 @@ struct MainPageTabBar {
     @Binding var activePage: MainPage
 
     var body: some View {
-        div(.class("flex border-b border-gray-200 dark:border-gray-700 mb-4")) {
+        div(.class("flex mb-4")) {
             for page in MainPage.allCases {
                 MainPageTabButton(page: page, isActive: activePage == page, onSelect: { activePage = page })
             }
         }
+        .border(.separator, edges: .bottom)
     }
 }
 
@@ -426,11 +458,12 @@ struct UtilsView {
 struct AndroidPlaceholderView {
     var body: some View {
         div(.class("bg-white dark:bg-gray-800 rounded-lg shadow")) {
-            div(.class("flex border-b border-gray-200 dark:border-gray-700 px-2")) {
+            div(.class("flex px-2")) {
                 for label in ["Home", "Permissions", "Services", "Miscellaneous"] {
                     span(.class("px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500")) { label }
                 }
             }
+            .border(.separator, edges: .bottom)
             div(.class("p-6 text-center text-gray-500 dark:text-gray-400 text-sm")) {
                 p { "🤖 Android configuration isn't wired up yet." }
                 p(.class("mt-1 text-xs text-gray-400 dark:text-gray-500")) {

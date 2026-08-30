@@ -1,17 +1,36 @@
 [project]
 name = "ksp-studio"
-version = "0.1.0"
+version = "0.0.1"
 description = "Add your description here"
 readme = "README.md"
 authors = [
     { name = "psychowasp", email = "psychowaspx@gmail.com" }
 ]
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.13"
+dependencies = [
+    "django>=6.1",
+    # Style-preserving toml. `tomllib` reads but can't write; plain `toml`
+    # writes but rebuilds the file from a dict, losing comments and key order.
+    "tomlkit>=0.13",
+    "ksproject",
+]
 
 [project.scripts]
 ksp-studio = "ksp_studio:main"
 
+# setuptools rather than uv_build: the wheel has to contain the built wasm app,
+# and setup.py's build_py hook is what runs scripts/build_wasm.py to produce it.
 [build-system]
-requires = ["uv_build>=0.11.14,<0.12.0"]
-build-backend = "uv_build"
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# The staged bundle — assets/, device/, icons/, index.html. Generated, so it is
+# gitignored and matched by pattern rather than listed.
+[tool.setuptools.package-data]
+ksp_studio = ["web/**/*", "vendor/*", "terminal.html"]

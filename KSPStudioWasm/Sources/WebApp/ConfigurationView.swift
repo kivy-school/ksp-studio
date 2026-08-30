@@ -5,43 +5,99 @@ import JavaScriptKitExtensions
 
 // MARK: - Save Bar
 
-/// Save button + status message, shared by `PythonConfigView` and
-/// `AppleConfigView` (each platform gets its own tab bar, but saving always
-/// persists the whole `ProjectModel`).
+/// Save button + status message. Lives in the nav bar rather than at the foot
+/// of a tab: saving persists the whole project, so which tab happens to be
+/// open has nothing to do with it, and Android — on `RootModel`, with no save
+/// bar of its own — was unsaveable while each platform view owned one.
 @View
 struct SaveConfigurationBar {
-    var folderName: String
     var model: ProjectModel
+    var rootModel: RootModel
+    @Binding var baseline: ProjectModel
+    @Binding var baselineRoot: RootModel
     @Binding var saveMessage: String
 
-    var body: some View {
-        div(.class("p-6 bg-gray-50 dark:bg-gray-900 dark:border-gray-700 rounded-b-lg flex items-center gap-4 border-t")) {
-            button(.class("bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 font-medium cursor-pointer")) {
-                "Save Configuration"
-            }
-            .onClick { _ in Task { await save() } }
+    /// setTimeout handle for clearing the status message, so each save can
+    /// cancel the previous one's timer instead of having it fire late and
+    /// blank out a newer message.
+    @State var clearTimer: Double = 0
 
+    var body: some View {
+        div(.class("flex items-center gap-3")) {
             if !saveMessage.isEmpty {
-                span(.class("text-sm \(saveMessage.contains("Failed") ? "text-red-600" : "text-green-600")")) {
+                span(.class("text-xs \(saveMessage.contains("Failed") ? "text-red-200" : "text-indigo-100")")) {
                     saveMessage
                 }
             }
+
+            button(.class("bg-white text-indigo-700 px-4 py-1.5 rounded hover:bg-indigo-50 font-medium text-sm cursor-pointer")) {
+                "Save Configuration"
+            }
+            .onClick { _ in Task { await save() } }
         }
     }
 
     func save() async {
         do {
-            let result = try await APIClient.saveProject(folderName: folderName, data: model.jsValue)
+            let result = try await APIClient.saveProject(
+                data: savePayload(
+                    model: model,
+                    rootModel: rootModel,
+                    baseline: baseline,
+                    baselineRoot: baselineRoot
+                )
+            )
             saveMessage = result.message
+            // What's on disk is now what's in the models, so that becomes the
+            // new baseline. Without this a field edited, saved, then put back
+            // would match the stale baseline and produce no change — leaving
+            // the file holding the value the user just undid.
+            baseline = .construct(from: model.jsValue) ?? .init()
+            baselineRoot = .construct(from: rootModel.jsValue) ?? .init()
         } catch {
             saveMessage = "Failed to save: \(error)"
         }
-        // Clear message after 3 seconds
-        _ = JSObject.global.setTimeout!(JSOneshotClosure { _ in
+
+        // Clear the message after 3 seconds, cancelling any earlier timer.
+        if clearTimer != 0 {
+            _ = JSObject.global.clearTimeout!(clearTimer)
+        }
+        clearTimer = JSObject.global.setTimeout!(JSOneshotClosure { _ in
             saveMessage = ""
             return .undefined
-        }, 3000)
+        }, 3000).number ?? 0
     }
+}
+
+/// The body POSTed to `/api/project/save`.
+///
+/// Both models go up together — the legacy flat one the Python and Apple tabs
+/// edit, and the real document the Android tab edits — under `_baseline`
+/// alongside an untouched copy of each as they were loaded.
+///
+/// The baseline is what keeps a save from rewriting the file. Every model
+/// fills in a default for every field it knows about, so posting one back
+/// wholesale invents settings the project never had; the server compares the
+/// two sides and writes only the keys that differ. Because both sides come
+/// from the same models, an untouched field is byte-identical on both and
+/// produces nothing to write — no matter whether its value came from the file
+/// or from a default. See `ksp_studio/project.py`.
+func savePayload(
+    model: ProjectModel,
+    rootModel: RootModel,
+    baseline: ProjectModel,
+    baselineRoot: RootModel
+) -> JSValue {
+    let body = saveSnapshot(model: model, rootModel: rootModel)
+    body._baseline = saveSnapshot(model: baseline, rootModel: baselineRoot)
+    return body.jsValue
+}
+
+/// Both models flattened into the one object shape the server reads.
+func saveSnapshot(model: ProjectModel, rootModel: RootModel) -> JSObject {
+    let obj = model.jsValue.object!
+    obj.pyProject = rootModel.pyProject
+    return obj
 }
 
 // MARK: - Python / uv platform view
@@ -50,8 +106,6 @@ struct SaveConfigurationBar {
 struct PythonConfigView {
     var model: ProjectModel
     @Binding var activeTab: ConfigTab
-    var folderName: String
-    @Binding var saveMessage: String
 
     var body: some View {
         div {
@@ -73,8 +127,6 @@ struct PythonConfigView {
                         BuildSystemTab(section: model.buildSystem)
                     }
                 }
-
-                SaveConfigurationBar(folderName: folderName, model: model, saveMessage: $saveMessage)
             }
         }
     }
@@ -85,11 +137,12 @@ struct ConfigTabBar {
     @Binding var activeTab: ConfigTab
 
     var body: some View {
-        div(.class("flex border-b border-gray-200 dark:border-gray-700")) {
+        div(.class("flex")) {
             for tab in ConfigTab.allCases {
                 ConfigTabButton(tab: tab, isActive: activeTab == tab, onSelect: { activeTab = tab })
             }
         }
+        .border(.separator, edges: .bottom)
     }
 }
 
@@ -190,8 +243,6 @@ struct AppleConfigView {
     var model: ProjectModel
     @Binding var activeTab: AppleTab
     @Binding var activeHomeSubTab: AppleHomeSubTab
-    var folderName: String
-    @Binding var saveMessage: String
 
     var body: some View {
         div {
@@ -208,8 +259,6 @@ struct AppleConfigView {
                         IOSMiscellaneousTab(section: model.psproject)
                     }
                 }
-
-                SaveConfigurationBar(folderName: folderName, model: model, saveMessage: $saveMessage)
             }
         }
     }
@@ -220,11 +269,12 @@ struct AppleTabBar {
     @Binding var activeTab: AppleTab
 
     var body: some View {
-        div(.class("flex border-b border-gray-200 dark:border-gray-700")) {
+        div(.class("flex")) {
             for tab in AppleTab.allCases {
                 AppleTabButton(tab: tab, isActive: activeTab == tab, onSelect: { activeTab = tab })
             }
         }
+        .border(.separator, edges: .bottom)
     }
 }
 
@@ -254,12 +304,13 @@ struct AppleHomeTab {
     @Binding var activeSubTab: AppleHomeSubTab
 
     var body: some View {
-        div(.class("border border-gray-200 dark:border-gray-700 rounded-lg")) {
-            div(.class("flex border-b border-gray-200 dark:border-gray-700")) {
+        div(.class("rounded-lg")) {
+            div(.class("flex")) {
                 for tab in AppleHomeSubTab.allCases {
                     AppleHomeSubTabButton(tab: tab, isActive: activeSubTab == tab, onSelect: { activeSubTab = tab })
                 }
             }
+            .border(.separator, edges: .bottom)
 
             div(.class("p-4")) {
                 switch activeSubTab {
@@ -287,6 +338,7 @@ struct AppleHomeTab {
                 }
             }
         }
+        .border(.separator)
     }
 }
 

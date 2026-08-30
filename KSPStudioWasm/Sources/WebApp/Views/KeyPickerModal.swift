@@ -43,7 +43,7 @@ struct KeyPickerModal {
                 // Modal card
                 div(.class("relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col")) {
                     // Header
-                    div(.class("flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700")) {
+                    div(.class("flex items-center justify-between px-4 py-3")) {
                         h3(.class("text-sm font-semibold text-gray-800 dark:text-gray-100")) { "Select a Key" }
                         button(
                             .type(.button),
@@ -51,9 +51,10 @@ struct KeyPickerModal {
                         ) { "✕" }
                         .onClick { _ in close() }
                     }
+                    .border(.separator, edges: .bottom)
 
                     // Search filter
-                    div(.class("px-4 py-2 border-b border-gray-200 dark:border-gray-700")) {
+                    div(.class("px-4 py-2")) {
                         input(
                             .type(.text),
                             .class("w-full text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 rounded px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"),
@@ -61,6 +62,7 @@ struct KeyPickerModal {
                         )
                         .bindValue($searchText)
                     }
+                    .border(.separator, edges: .bottom)
 
                     // Key list grouped by category
                     div(.class("overflow-y-auto flex-1 px-2 py-2")) {

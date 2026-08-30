@@ -10,12 +10,11 @@ import JavaScriptKit
 /// `Binding<String>` helpers below (nil-collapsing at the call site) rather
 /// than components declaring their own `Binding<Optional<_>>` properties.
 ///
-/// The right column also carries kivy's sdk/ndk path toggles (`Toggle` +
+/// The right column also carries kivy's tool-path settings (`Toggle` +
 /// conditional path field, gated on `nil`) in `AndroidPathSettings` below —
 /// a sibling of `AndroidArchPicker`, not nested inside it (they aren't arch
-/// settings). Kivy's home screen has 2 more of these (Java path, Global
-/// tools); `KivySchoolData.AndroidData` already exposes
-/// `javaPathEnabled`/`globalToolsPathEnabled` for them.
+/// settings): sdk, ndk, java and global-tools paths, plus the `global_tools`
+/// switch the last of those hangs off.
 ///
 /// This file previously carried a long warning that no structural variant of
 /// these fields could exceed 2 simultaneous `Toggle`+conditional-field
@@ -142,7 +141,7 @@ struct AndroidArchPicker {
 }
 
 /// `Toggle` is already the reusable unit for on/off state (see
-/// `ElementaryViews/Toggle.swift`); the 2 path fields below are built via
+/// `ElementaryViews/Toggle.swift`); the 4 path fields below are built via
 /// `ToggleGatedPathField`. Split out as its own sibling struct because these
 /// are path settings, not arch settings — `AndroidArchPicker` isn't where they
 /// belong. (This split was once also needed to dodge the old `#VStack` macro's
@@ -151,6 +150,12 @@ struct AndroidArchPicker {
 /// Each field's toggle state is presence-of-path (`nil` = off),
 /// derived on the model itself as `sdkPathEnabled`/etc. (see
 /// `KivySchoolData.swift`) rather than re-derived ad hoc in the view.
+///
+/// `global_tools` is a plain stored `Bool`, not a path, so it gets a
+/// `ToggleField` rather than a gated one. It and `global_tools_path` sit
+/// together inside a bordered box because the path only means anything while
+/// the switch is on — grouped by a border rather than by indenting the path
+/// under the switch.
 @View
 struct AndroidPathSettings {
     var section: KivySchoolData.AndroidData
@@ -158,6 +163,25 @@ struct AndroidPathSettings {
     var body: some View {
         VStack(spacing: .sm) {
             Divider()
+
+            GroupBox {
+                VStack(spacing: .sm) {
+                    ToggleField(
+                        section: section,
+                        isOnKeyPath: \.globalTools,
+                        label: "Use global tools",
+                        hint: "Off: use the project-local SDK/NDK in ./.kivyschool. On: use the shared ones in ~/.kivyschool (or Global tools path)."
+                    )
+                    ToggleGatedPathField(
+                        section: section,
+                        isOnKeyPath: \.globalToolsPathEnabled,
+                        valueKeyPath: \.globalToolsPath,
+                        label: "Global tools path",
+                        placeholder: "~/.kivyschool"
+                    )
+                }
+            }
+
             ToggleGatedPathField(
                 section: section,
                 isOnKeyPath: \.sdkPathEnabled,
@@ -172,12 +196,37 @@ struct AndroidPathSettings {
                 label: "Android ndk path",
                 placeholder: "Enter your android ndk path here"
             )
+            ToggleGatedPathField(
+                section: section,
+                isOnKeyPath: \.javaPathEnabled,
+                valueKeyPath: \.javaPath,
+                label: "Java path",
+                placeholder: "Enter your jdk path here"
+            )
         }
     }
 }
 
+/// A `Toggle` whose explanation is the hover tooltip rather than text under
+/// it. These settings need a sentence to explain, and a sentence per toggle
+/// is more than this narrow column can carry statically — it turns a list of
+/// switches into a wall of prose. `title` puts it one hover away instead,
+/// same as the platform rail's icons.
+@View
+struct ToggleField {
+    var section: KivySchoolData.AndroidData
+    var isOnKeyPath: ReferenceWritableKeyPath<KivySchoolData.AndroidData, Bool>
+    var label: String
+    var hint: String = ""
+
+    var body: some View {
+        Toggle(isOn: boolBinding(isOnKeyPath, on: section)) { span(.class("text-sm text-gray-700 dark:text-gray-300")) { label } }
+            .attributes(.custom(name: "title", value: hint))
+    }
+}
+
 /// Extracted wrapper for a `Toggle` + conditionally-shown path `input`, used
-/// by both the sdk and ndk path fields above.
+/// by all four path fields above.
 @View
 struct ToggleGatedPathField {
     var section: KivySchoolData.AndroidData

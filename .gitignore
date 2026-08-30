@@ -17,6 +17,12 @@ dist/
 *.log
 npm-debug.log*
 
+# The wasm bundle staged into the package by scripts/build_wasm.py. A build
+# artifact (~46 MiB) — produced at release time, not committed.
+src/ksp_studio/web/
+# xterm.js, copied out of node_modules by the same script.
+src/ksp_studio/vendor/
+
 # Python-generated files
 __pycache__/
 *.py[oc]

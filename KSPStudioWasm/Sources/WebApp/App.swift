@@ -7,15 +7,14 @@ struct App {
     static func main() {
         // Required for async/await with JSPromise to work
         JavaScriptEventLoop.installGlobalExecutor()
-        
-        // Extract project folder name from URL path: /project/:name
-        let pathname = JSObject.global.location.pathname.string ?? ""
-        let parts = pathname.split(separator: "/")
-        let folderName = parts.count >= 2 && parts[0] == "project" ? String(parts[1]) : ""
-        
-        _ = JSObject.global.console.log("Wasm app started, pathname: \(pathname), folderName: \(folderName)")
 
-        let app = Application(ProjectConfigApp(folderName: folderName))
+        // Nothing to read out of the URL: the server was started from the root
+        // of the ksproject it edits, so `/api/project` already resolves to the
+        // one target. The old build parsed a folder name out of `/project/:name`
+        // because Vapor served many projects from a single directory.
+        _ = JSObject.global.console.log("Wasm app started")
+
+        let app = Application(ProjectConfigApp())
         app.mount(in: .body)
     }
 }

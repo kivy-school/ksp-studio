@@ -97,11 +97,12 @@ struct AndroidServiceFormModal {
                 .onClick { _ in onDismiss() }
 
             div(.class("relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto")) {
-                div(.class("flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700")) {
+                div(.class("flex items-center justify-between px-6 py-4")) {
                     h3(.class("font-semibold text-gray-800 dark:text-gray-100")) { "Android Service" }
                     button(.class("text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-lg leading-none cursor-pointer")) { "✕" }
                         .onClick { _ in onDismiss() }
                 }
+                .border(.separator, edges: .bottom)
 
                 div(.class("p-6 space-y-1")) {
                     FormField(
@@ -152,10 +153,11 @@ struct AndroidServiceFormModal {
                     )
                 }
 
-                div(.class("flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-gray-700")) {
+                div(.class("flex justify-end gap-2 px-6 py-4")) {
                     button(.class("px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 cursor-pointer")) { "Done" }
                         .onClick { _ in onDismiss() }
                 }
+                .border(.separator, edges: .bottom)
             }
         }
         .onKeyDown { event in

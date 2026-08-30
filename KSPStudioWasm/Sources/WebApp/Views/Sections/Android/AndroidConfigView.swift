@@ -41,11 +41,12 @@ struct AndroidTabBar {
     @Binding var activeTab: AndroidTab
 
     var body: some View {
-        div(.class("flex border-b border-gray-200 dark:border-gray-700")) {
+        div(.class("flex")) {
             for tab in AndroidTab.allCases {
                 AndroidTabButton(tab: tab, isActive: activeTab == tab, onSelect: { activeTab = tab })
             }
         }
+        .border(.separator, edges: .bottom)
     }
 }
 
